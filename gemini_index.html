@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>2025 廣島・岡山・姬路・大阪 9 天行程（含美食＋地圖＋JMA天氣）</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background:#f3f4f6; }
+    .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.4s ease-out; }
+    .accordion-toggle:checked + label + .accordion-content { max-height: 4000px; }
+    .rotate-icon { transform: rotate(180deg); }
+    .day-card { box-shadow: 0 10px 25px rgba(15,23,42,0.12); transition: transform .2s ease, box-shadow .2s ease; }
+    .day-card:hover { transform: translateY(-2px); box-shadow: 0 18px 35px rgba(15,23,42,0.18); }
+    .food-booked { background:#ecfdf5; border-left:4px solid #10b981; color:#065f46; padding:.45rem .7rem; border-radius:.375rem; font-size:.8rem; margin-top:.35rem; }
+    .food-planned { background:#eff6ff; border-left:4px solid #2563eb; color:#1e3a8a; padding:.45rem .7rem; border-radius:.375rem; font-size:.8rem; margin-top:.35rem; }
+  </style>
+<!-- PWA meta injected -->
+<meta name="theme-color" content="#020617" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Japan Trip Gemini" />
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="apple-touch-icon" href="icon-192.png" />
+
+</head>
+<body class="p-4 md:p-8">
+  <div class="max-w-5xl mx-auto">
+    <header class="mb-6 border-b border-emerald-400 pb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+      <div>
+        <h1 class="text-3xl md:text-4xl font-bold text-slate-900 tracking-tight">
+          🇯🇵 2025 廣島・岡山・姬路・大阪 9 天行程（優化＋地圖＋天氣版）
+        </h1>
+        <p class="text-sm md:text-base text-slate-600 mt-1">
+          旅遊日期：2025/12/02（二）～ 12/10（三）｜12/04～12/08 為 JR 西日本山陽新幹線 Pass 使用日
+        </p>
+      </div>
+      <div class="text-xs md:text-sm text-slate-500 bg-white/70 border border-slate-200 rounded-lg px-3 py-2 max-w-xs">
+        📌 操作提示：<br/>
+        ‣ 點每日卡片標題展開/收合行程。<br/>
+        ‣ **天氣區塊已更新為最新滾動預報。**
+      </div>
+    </header>
+
+    <main id="itinerary-container" class="space-y-6"></main>
+  </div>
+
+  <script>
+    const itinerary = [
+      {
+        id: 1,
+        dateLabel: "12/02 (二)",
+        title: "Day 1：台灣移動日",
+        city: "台南 → 新竹 → 桃園機場",
+        theme: "收尾工作＋前往桃園機場",
+        hotel: "N/A（機場前一晚）",
+        jrPass: false,
+        mapQuery: "Taiwan Taoyuan International Airport TPE",
+        hotelMapQuery: null, 
+        weather: {
+          label: "台灣北部與廣島 (HIJ) 附近",
+          jmaUrl: "https://www.data.jma.go.jp/multi/yoho/yoho_detail.html?code=340010&lang=en",
+          status: "大多晴朗",
+          temp: "約 18°C / 8°C (廣島)",
+          tip: "廣島氣溫舒適，台灣出發請留意保暖。"
+        },
+        activities: [
+          {
+            time: "14:48",
+            label: "台南高鐵 → 新竹高鐵（台灣高鐵 14:48-15:56）",
+            icon: "🚄",
+            mapQuery: "Tainan HSR Station",
+          },
+          {
+            time: "16:17",
+            label: "新竹高鐵 → 住家（快捷 8 號公車）",
+            icon: "🚌",
+            mapQuery: "Hsinchu HSR Station",
+          },
+          {
+            time: "深夜 03:30",
+            label: "新竹 → 桃園機場 (TPE) 機場接送",
+            icon: "🚐",
+            mapQuery: "Taiwan Taoyuan International Airport T1",
+          }
+        ]
+      },
+      {
+        id: 2,
+        dateLabel: "12/03 (三)",
+        title: "Day 2：廣島市區＆和牛燒肉",
+        city: "廣島",
+        theme: "抵達廣島・原爆圓頂＋和牛燒肉",
+        hotel: "廣島麗嘉皇家飯店（已訂）",
+        jrPass: false,
+        mapQuery: "Hiroshima Peace Memorial Park",
+        hotelMapQuery: "Rihga Royal Hotel Hiroshima, 6-78 Motomachi, Naka-ku, Hiroshima",
+        weather: {
+          label: "廣島市區",
+          jmaUrl: "https://www.data.jma.go.jp/multi/yoho/yoho_detail.html?code=340010&lang=en",
+          status: "多雲間歇晴朗",
+          temp: "約 10°C / 4°C",
+          tip: "氣溫明顯下降，請務必準備保暖外套及發熱衣物。"
+        },
+        activities: [
+          {
+            time: "07:00–10:15",
+            label: "桃園 (TPE) → 廣島 (HIJ)（中華航空 CI112）",
+            icon: "✈️",
+            mapQuery: "Hiroshima Airport",
+          },
+          {
+            time: "11:02–12:09",
+            label: "廣島空港 → 廣島巴士中心（利木津巴士）",
+            icon: "🚌",
+            mapQuery: "Hiroshima Bus Center",
+          },
+          {
+            time: "12:00–13:00",
+            label: "午餐：廣島牡蠣大餐",
+            icon: "🦪",
+            mapQuery: "Hiroshima Kakidokoro Baketsu Kamiyacho",
+            foodName: "Hiroshima Kakidokoro Baketsu",
+            foodStatus: "booked",
+            foodNote: "飯店附近，已完成預約。"
+          },
+          {
+            time: "13:00–17:00",
+            label: "原爆ドーム・紙鶴塔・元安橋・和平紀念公園一帶散步",
+            icon: "🕊️",
+            mapQuery: "Hiroshima Peace Memorial Museum",
+          },
+          {
+            time: "18:00–22:00",
+            label: "晚餐：和牛燒肉",
+            icon: "🥩",
+            mapQuery: "Yakiniku Furusato Hiroshima Station",
+            foodName: "Yakiniku Furusato Hiroshima station",
+            foodStatus: "booked",
+            foodNote: "廣島站附近，和牛燒肉，已預訂。"
+          }
+        ]
+      },
+      {
+        id: 3,
+        dateLabel: "12/04 (四)",
+        title: "Day 3：姬路城巡禮（無宮島）",
+        city: "廣島 → 姬路",
+        theme: "世界遺產白鷺城＋姬路老街散步",
+        hotel: "姬路大和 Roynet 飯店（預計）",
+        jrPass: true,
+        mapQuery: "Himeji Castle",
+        hotelMapQuery: "Daiwa Roynet Hotel Himeji, 353 Ekimae-cho, Himeji",
+        weather: {
+          label: "姬路市區",
+          jmaUrl: "https://www.data.jma.go.jp/multi/yoho/yoho_detail.html?code=630&lang=en",
+          status: "多雲間歇晴朗",
+          temp: "約 11°C / 0°C",
+          tip: "清晨和夜間接近冰點，防風外套和圍巾非常重要。"
+        },
+        activities: [
+          {
+            time: "09:56–10:44",
+            label: "廣島 → 姬路（山陽新幹線 Mizuho 602，09:56-10:44）／🎫 JR Pass 使用日",
+            icon: "🚄",
+            mapQuery: "Himeji Station",
+          },
+          {
+            time: "11:00 前後",
+            label: "姬路咖啡廳早午餐（Hamamoto Coffee／Cafe de Muche 杏仁吐司）",
+            icon: "☕",
+            mapQuery: "Cafe de Muche Himeji",
+            foodName: "Hamamoto Coffee 或 Cafe de Muche",
+            foodStatus: "planned",
+            foodNote: "現場看排隊情況再決定。"
+          },
+          {
+            time: "12:00–15:00",
+            label: "姬路城天守閣＋好古園庭園",
+            icon: "🏯",
+            mapQuery: "Himeji Castle",
+          },
+          {
+            time: "傍晚",
+            label: "大手前通散步・FESTA 等商場逛街",
+            icon: "🛍️",
+            mapQuery: "Otemae Street Himeji",
+          },
+          {
+            time: "19:00 前後",
+            label: "晚餐：姬路明石燒（たこピィ / Tacopy）",
+            icon: "🍳",
+            mapQuery: "Tacopy Himeji",
+            foodName: "Tacopy 明石燒",
+            foodStatus: "planned",
+            foodNote: "B 級美食，可現場候位。"
+          }
+        ]
+      },
+      {
+        id: 4,
+        dateLabel: "12/05 (五)",
+        title: "Day 4：倉敷美觀地區",
+        city: "姬路 → 岡山 → 倉敷",
+        theme: "運河老街・阿智神社・蟹道樂",
+        hotel: "岡山飯店（岡山大和 Roynet／格蘭比亞 等）",
+        jrPass: true,
+        mapQuery: "Kurashiki Bikan Historical Quarter",
+        hotelMapQuery: "Daiwa Roynet Hotel Okayama-Ekimae, 1-1-1 Ekimaecho, Kita-ku, Okayama",
+        weather: {
+          label: "岡山・倉敷",
+          jmaUrl: "https://www.data.jma.go.jp/multi/yoho/yoho_detail.html?code=660&lang=en",
+          status: "多雲",
+          temp: "約 9°C / 1°C",
+          tip: "白天溫度偏低，夜間接近冰點，多層次穿搭以應對室內外溫差。"
+        },
+        activities: [
+          {
+            time: "10:50–11:09",
+            label: "姬路 → 岡山（山陽新幹線 Sakura 551，10:50-11:09）／🎫 JR Pass 使用日",
+            icon: "🚄",
+            mapQuery: "Okayama Station",
+          },
+          {
+            time: "10:00–11:00",
+            label: "飯店 Check-in 放行李",
+            icon: "🏨",
+            mapQuery: "Okayama Station Hotel area",
+          },
+          {
+            time: "11:30–13:00",
+            label: "早午餐：倉敷美食三選一（倉敷プリン／有鄰庵／Den 蕎麥麵）",
+            icon: "🍜",
+            mapQuery: "Kurashiki Bikan area",
+            foodName: "倉敷プリン／有鄰庵／Den 蕎麥麵",
+            foodStatus: "planned",
+            foodNote: "依現場排隊與當天想吃的類型決定。"
+          },
+          {
+            time: "13:00–17:00",
+            label: "倉敷美觀地區散步＋阿智神社參拜＋Ario 倉敷逛街",
+            icon: "🛶",
+            mapQuery: "Achi Shrine Kurashiki",
+          },
+          {
+            time: "17:30",
+            label: "晚餐：蟹道樂 岡山店（樂吃購優惠可拿可樂餅）",
+            icon: "🦀",
+            mapQuery: "Kani Doraku Okayama",
+            foodName: "蟹道樂 岡山",
+            foodStatus: "booked",
+            foodNote: "已預約 17:30 入座。"
+          },
+          {
+            time: "晚餐後",
+            label: "Little Okayama 咖啡廳喝咖啡＋看備前燒",
+            icon: "☕",
+            mapQuery: "Little Okayama Cafe",
+          }
+        ]
+      },
+      {
+        id: 5,
+        dateLabel: "12/06 (六)",
+        title: "Day 5：岡山深度遊＋回廣島",
+        city: "岡山 → 廣島",
+        theme: "神社御守・後樂園・廣島入住 Hilton",
+        hotel: "廣島 Hilton（已訂）",
+        jrPass: true,
+        mapQuery: "Okayama Korakuen Garden",
+        hotelMapQuery: "Hilton Hiroshima, 11-12 Fujimicho, Naka-ku, Hiroshima",
+        weather: {
+          label: "岡山 → 廣島 (主要廣島天氣)",
+          jmaUrl: "https://www.data.jma.go.jp/multi/yoho/cyugoku.html?forecast=weather0&lang=en",
+          status: "大多晴朗",
+          temp: "約 13°C / 3°C",
+          tip: "晴朗好天氣，適合戶外活動。但日夜溫差大，注意保暖。"
+        },
+        activities: [
+          {
+            time: "09:00–11:30",
+            label: "岡山神社・吉備津彥神社（桃子御守）",
+            icon: "⛩️",
+            mapQuery: "Kibitsuhiko Shrine",
+          },
+          {
+            time: "12:00–13:30",
+            label: "午餐：岡山拉麵（麵酒一照庵 或 尾道らーめん燈）",
+            icon: "🍜",
+            mapQuery: "麵酒一照庵 岡山",
+            foodName: "麵酒一照庵／尾道らーめん燈",
+            foodStatus: "planned",
+            foodNote: "看排隊長度與心情選一間。"
+          },
+          {
+            time: "14:00–16:00",
+            label: "岡山後樂園散策",
+            icon: "🌿",
+            mapQuery: "Okayama Korakuen",
+          },
+          {
+            time: "16:26–17:05",
+            label: "岡山 → 廣島（山陽新幹線 Nozomi 35，16:26-17:05）／🎫 JR Pass 使用日",
+            icon: "🚄",
+            mapQuery: "Hiroshima Station",
+          },
+          {
+            time: "傍晚",
+            label: "入住廣島 Hilton・視情況使用 Lounge Happy Hour（17:00–19:00）",
+            icon: "🏨",
+            mapQuery: "Hilton Hiroshima",
+          },
+          {
+            time: "20:00–22:00",
+            label: "夜間購物：西松屋・運動用品店等",
+            icon: "🛒",
+            mapQuery: "Hiroshima city shopping area",
+          }
+        ]
+      },
+      {
+        id: 6,
+        dateLabel: "12/07 (日)",
+        title: "Day 6：尾道山城與貓之細道",
+        city: "廣島 → 尾道 → 廣島",
+        theme: "千光寺・貓之細道・尾道拉麵",
+        hotel: "廣島 Hilton（已訂）",
+        jrPass: true,
+        mapQuery: "Onomichi Senkoji Park",
+        hotelMapQuery: "Hilton Hiroshima, 11-12 Fujimicho, Naka-ku, Hiroshima",
+        weather: {
+          label: "尾道（廣島縣東部）",
+          jmaUrl: "https://www.data.jma.go.jp/multi/yoho/yoho_detail.html?code=340010&lang=en",
+          status: "多雲間歇晴朗",
+          temp: "約 17°C / 5°C",
+          tip: "氣溫回升，但風大時仍會感覺冷，登山時建議穿脫方便的衣物。"
+        },
+        activities: [
+          {
+            time: "09:18–09:41",
+            label: "廣島 → 福山（山陽新幹線 Nozomi 12，09:18-09:41），後轉 JR山陽本線至尾道／🎫 JR Pass 使用日",
+            icon: "🚄",
+            mapQuery: "Onomichi Station",
+          },
+          {
+            time: "10:00–12:00",
+            label: "千光寺纜車上山・千光寺公園眺望瀨戶內海",
+            icon: "⛰️",
+            mapQuery: "Senkoji Park",
+          },
+          {
+            time: "12:00–13:30",
+            label: "午餐：尾道拉麵或尾道燒",
+            icon: "🍜",
+            mapQuery: "Onomichi Ramen",
+            foodName: "尾道拉麵／尾道燒",
+            foodStatus: "planned",
+            foodNote: "看評價與排隊情況臨場決定。"
+          },
+          {
+            time: "13:30–16:30",
+            label: "貓之細道・尾道本通商店街散步",
+            icon: "🐾",
+            mapQuery: "Neko no Hosomichi Onomichi",
+          },
+          {
+            time: "傍晚～晚上",
+            label: "返回廣島・晚餐：車站附近迴轉壽司或市區餐廳",
+            icon: "🍣",
+            mapQuery: "Hiroshima Station ekie Sushi",
+          }
+        ]
+      },
+      {
+        id: 7,
+        dateLabel: "12/08 (一)",
+        title: "Day 7：大阪一日遊（行程未定）",
+        city: "廣島 ↔ 新大阪",
+        theme: "大阪彈性行程，僅保留交通",
+        hotel: "廣島 Hilton（已訂）",
+        jrPass: true,
+        mapQuery: "Shin-Osaka Station",
+        hotelMapQuery: "Hilton Hiroshima, 11-12 Fujimicho, Naka-ku, Hiroshima",
+        weather: {
+          label: "大阪市區 (預計)",
+          jmaUrl: "https://www.data.jma.go.jp/multi/yoho/yoho_detail.html?code=270000&lang=en",
+          status: "多雲短暫陣雨 (60% 降雨率)",
+          temp: "約 16°C / 9°C",
+          tip: "大阪有 60% 機率降雨，請務必攜帶雨具並考慮室內備案。此為 JR Pass 最後一日。"
+        },
+        activities: [
+          {
+            time: "09:07–10:28",
+            label: "廣島 → 新大阪（山陽新幹線 Nozomi 10，09:07-10:28）／🎫 JR Pass 使用日",
+            icon: "🚄",
+            mapQuery: "Shin-Osaka Station",
+          },
+          {
+            time: "10:30–18:00",
+            label: "新大阪站周邊/大阪市區彈性活動",
+            icon: "❓",
+            mapQuery: "Osaka Station City or Namba area",
+            foodName: "午餐/晚餐/活動未定",
+            foodStatus: "planned",
+            foodNote: "可選擇前往大阪城、心齋橋、梅田等地，待決定後再填入細節。"
+          },
+          {
+            time: "18:20–19:41",
+            label: "新大阪 → 廣島（山陽新幹線 Nozomi 47，18:20-19:41）／🎫 JR Pass 最後一日",
+            icon: "🚄",
+            mapQuery: "Shin-Osaka Station to Hiroshima Station",
+          }
+        ]
+      },
+      {
+        id: 8,
+        dateLabel: "12/09 (二)",
+        title: "Day 8：廣島市區深度＆採購",
+        city: "廣島",
+        theme: "城跡庭園＋最後的大採購日",
+        hotel: "廣島麗嘉皇家飯店（已訂）",
+        jrPass: false,
+        mapQuery: "Hiroshima Castle, Shukkeien, Mega Sports Hiroshima Fuchu",
+        hotelMapQuery: "Rihga Royal Hotel Hiroshima, 6-78 Motomachi, Naka-ku, Hiroshima",
+        weather: {
+          label: "廣島市區",
+          jmaUrl: "https://www.data.jma.go.jp/multi/yoho/yoho_detail.html?code=340010&lang=en",
+          status: "多雲間歇晴朗",
+          temp: "約 14°C / 5°C",
+          tip: "若有下雨可調整為室內購物為主，目前看來天氣尚可。"
+        },
+        activities: [
+          {
+            time: "上午",
+            label: "縮景園・廣島城・廣島護國神社",
+            icon: "🏯",
+            mapQuery: "Hiroshima Castle",
+          },
+          {
+            time: "中午",
+            label: "午餐：市區餐廳或百貨美食街（彈性安排）",
+            icon: "🍱",
+            mapQuery: "Hiroshima city restaurant",
+          },
+          {
+            time: "下午",
+            label: "前往 AEON MALL Hiroshima Fuchu・Mega Sports Hiroshima Fuchu 採購運動用品",
+            icon: "🛒",
+            mapQuery: "Mega Sports Hiroshima Fuchu",
+          },
+          {
+            time: "傍晚",
+            label: "視戰利品多寡決定是否再逛市區或回飯店整理行李",
+            icon: "🎒",
+            mapQuery: "AEON MALL Hiroshima Fuchu",
+          },
+          {
+            time: "晚餐",
+            label: "最後一晚廣島晚餐（廣島燒／居酒屋／壽司店）",
+            icon: "🍣",
+            mapQuery: "Hiroshima okonomiyaki restaurant",
+          }
+        ]
+      },
+      {
+        id: 9,
+        dateLabel: "12/10 (三)",
+        title: "Day 9：賦歸",
+        city: "廣島 → 桃園 → 台南",
+        theme: "慢慢收尾・帶著滿滿戰利品回家",
+        hotel: "N/A（返家）",
+        jrPass: false,
+        mapQuery: "Hiroshima Airport, Tainan HSR Station",
+        hotelMapQuery: null,
+        weather: {
+          label: "廣島市區",
+          jmaUrl: "https://www.data.jma.go.jp/multi/yoho/yoho_detail.html?code=340010&lang=en",
+          status: "多雲間歇晴朗",
+          temp: "約 13°C / 7°C",
+          tip: "留意廣島機場的氣溫較市區低，搭機時注意保暖。"
+        },
+        activities: [
+          {
+            time: "早上",
+            label: "飯店退房・確認行李重量與伴手禮",
+            icon: "🧳",
+            mapQuery: "Hilton Hiroshima",
+          },
+          {
+            time: "08:15 前後",
+            label: "廣島市區 → 廣島空港（利木津巴士）",
+            icon: "🚌",
+            mapQuery: "Hiroshima Airport Limousine Bus",
+          },
+          {
+            time: "11:15–13:15",
+            label: "廣島 (HIJ) → 桃園 (TPE)（中華航空 CI113）",
+            icon: "✈️",
+            mapQuery: "Hiroshima Airport",
+          },
+          {
+            time: "15:43–17:12",
+            label: "桃園高鐵 → 台南高鐵（台灣高鐵 15:43-17:12，預計車次 655）",
+            icon: "🚄",
+            mapQuery: "Taiwan High Speed Rail Taoyuan",
+          }
+        ]
+      }
+    ];
+
+    /**
+     * 構建 Google Maps 搜索 URL。
+     * @param {string} query 搜索的關鍵詞或地址。
+     * @returns {string} 可用的 Google Maps URL。
+     */
+    function buildGoogleSearchUrl(query) {
+      // 修正後的 Google Maps 標準搜索 API URL
+      return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+    }
+
+    function renderItinerary() {
+      const container = document.getElementById("itinerary-container");
+      container.innerHTML = itinerary.map((day, idx) => {
+        const isFirst = idx === 0;
+        const activitiesHtml = day.activities.map(act => {
+          const hasMap = !!act.mapQuery;
+          const hasFood = !!act.foodName && !!act.foodStatus;
+          let foodHtml = "";
+          if (hasFood) {
+            const isBooked = act.foodStatus === "booked";
+            const cls = isBooked ? "food-booked" : "food-planned";
+            const icon = isBooked ? "✅" : "📝";
+            foodHtml = `<div class="${cls}">${icon} <span class="font-semibold">${act.foodName}</span><span class="ml-1 text-[0.78rem]">${act.foodNote ? "— " + act.foodNote : ""}</span></div>`;
+          }
+          return `
+            <li class="flex items-start space-x-3">
+              <div class="text-xl pt-1">${act.icon || "•"}</div>
+              <div class="flex-1">
+                <p class="text-slate-900 font-semibold text-[0.98rem]">${act.label}</p>
+                <p class="text-xs text-slate-500 mt-0.5">${act.time}</p>
+                ${hasMap ? `<a href="${buildGoogleSearchUrl(act.mapQuery)}" target="_blank" class="inline-flex items-center mt-1 text-xs text-emerald-700 hover:text-emerald-900 underline underline-offset-2">
+                    在 Google Maps 開啟
+                    <svg class="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 3h7m0 0v7m0-7L10 14"></path>
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5v14h14"></path>
+                    </svg>
+                  </a>` : ""}
+                ${foodHtml}
+              </div>
+            </li>
+          `;
+        }).join("");
+
+        const jrBadge = day.jrPass
+          ? `<span class="inline-flex items-center text-[0.68rem] font-semibold text-emerald-800 bg-emerald-100 border border-emerald-300 rounded-full px-2 py-0.5 ml-2">
+              🎫 JR WEST 山陽新幹線 Pass 使用日
+            </span>`
+          : "";
+
+        const weatherHtml = day.weather && (day.weather.status || day.weather.tip)
+          ? `<div class="mt-4 p-3 bg-sky-50 border border-sky-200 rounded-xl shadow-inner">
+              <div class="flex items-center justify-between text-sm text-sky-900 mb-2">
+                <div class="font-bold tracking-wide flex items-center">
+                  <span class="mr-2 text-xl">
+                    ${day.weather.status.includes("雨") ? "🌧️" : day.weather.status.includes("晴") ? "☀️" : "☁️"}
+                  </span>
+                  今日天氣 (${day.weather.label})：<span class="ml-1 text-base">${day.weather.status}</span>
+                </div>
+                <div class="text-base font-bold text-slate-700">
+                   ${day.weather.temp}
+                </div>
+              </div>
+              <div class="text-[0.7rem] text-sky-700 mt-1">${day.weather.tip}</div>
+              ${day.weather.jmaUrl ? `<a href="${day.weather.jmaUrl}" target="_blank"
+                   class="inline-flex items-center mt-2 text-[0.7rem] font-semibold text-white bg-sky-600 hover:bg-sky-700 px-3 py-1 rounded-full shadow-sm">
+                   查看 JMA 詳細預報
+                   <svg class="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 3h7m0 0v7m0-7L10 14"></path>
+                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5v14h14"></path>
+                   </svg>
+                 </a>` : ""}
+            </div>`
+          : "";
+          
+        const hotelMapLinkHtml = day.hotelMapQuery
+            ? `<a href="${buildGoogleSearchUrl(day.hotelMapQuery)}" target="_blank" class="inline-flex items-center text-[0.7rem] font-medium text-blue-600 hover:text-blue-800 bg-blue-50 border border-blue-200 rounded-full px-2 py-0.5 whitespace-nowrap">
+                🏠 導航回飯店
+               </a>`
+            : '';
+
+        return `
+          <section class="day-card bg-white rounded-2xl border border-slate-200 overflow-hidden">
+            <input id="day-${day.id}" type="checkbox" class="accordion-toggle hidden" ${isFirst ? "checked" : ""} />
+            <label for="day-${day.id}" class="flex justify-between items-center px-5 py-4 cursor-pointer bg-gradient-to-r from-slate-900 via-slate-800 to-emerald-700 text-white">
+              <div>
+                <div class="text-xs font-light opacity-80">${day.dateLabel}｜${day.city}</div>
+                <div class="text-lg md:text-xl font-bold flex items-center">
+                  ${day.title}
+                  ${jrBadge}
+                </div>
+                <div class="text-[0.75rem] md:text-xs text-emerald-200 mt-0.5">
+                  🎯 今日主題：${day.theme}
+                </div>
+              </div>
+              <svg class="w-6 h-6 transition-transform duration-300 ${isFirst ? "rotate-icon" : ""}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </label>
+            <div class="accordion-content">
+              <div class="px-5 pt-4 pb-5 space-y-4">
+                
+                <div class="space-y-3">
+                  <div class="text-xs text-slate-600">
+                    <div class="font-semibold text-slate-800 flex items-center gap-2 flex-wrap">
+                      住宿：<span class="font-normal">${day.hotel}</span>
+                      ${hotelMapLinkHtml}
+                    </div>
+                  </div>
+                  <a href="${buildGoogleSearchUrl(day.mapQuery)}" target="_blank"
+                     class="block rounded-xl overflow-hidden bg-gradient-to-r from-sky-500 via-emerald-500 to-emerald-600 shadow-inner ring-1 ring-emerald-300/40 hover:shadow-lg hover:brightness-105 transition relative">
+                    <div class="px-4 py-3 flex items-center justify-between">
+                      <div class="text-xs text-sky-50">
+                        <div class="font-semibold tracking-wide flex items-center gap-1">
+                          <span>🗺️ 當日總覽地圖</span>
+                          <span class="text-[0.65rem] px-2 py-[2px] rounded-full bg-emerald-900/40 border border-emerald-300/40">可點擊開啟</span>
+                        </div>
+                        <div class="text-[0.68rem] mt-1 opacity-90 line-clamp-2">
+                          依據今日安排的大致活動範圍顯示（實際路線請以 Google Maps 即時導航為準）。
+                        </div>
+                      </div>
+                      <div class="flex flex-col items-center text-sky-50 text-[0.7rem] ml-3">
+                        <span class="text-2xl mb-1">📍</span>
+                        <span class="px-2 py-[2px] rounded-full bg-sky-900/40 border border-sky-200/40">Open in Maps</span>
+                      </div>
+                    </div>
+                  </a>
+                </div>
+
+
+                ${weatherHtml}
+
+                <ul class="mt-2 space-y-3">
+                  ${activitiesHtml}
+                </ul>
+              </div>
+            </div>
+          </section>
+        `;
+      }).join("");
+
+      // 處理箭頭旋轉
+      document.querySelectorAll(".accordion-toggle").forEach(cb => {
+        cb.addEventListener("change", () => {
+          const icon = cb.nextElementSibling.querySelector("svg");
+          if (icon) {
+            icon.classList.toggle("rotate-icon", cb.checked);
+          }
+        });
+      });
+    }
+
+    document.addEventListener("DOMContentLoaded", renderItinerary);
+  </script>
+<!-- PWA service worker registration -->
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () {
+      navigator.serviceWorker
+        .register('./service-worker.js')
+        .catch(function (err) {
+          console.warn('Service worker registration failed:', err);
+        });
+    });
+  }
+</script>
+
+</body>
+</html>
